@@ -74,7 +74,7 @@
             .task-card { padding: 10px; }
         }
 
-        .responsive-grid { display: grid; grid-template-columns: 340px 1fr; gap: 30px; }
+        .responsive-grid { display: grid; grid-template-columns: 1fr 340px; gap: 30px; }
         @media (max-width: 1024px) {
             .responsive-grid { grid-template-columns: 1fr; gap: 20px; }
         }
@@ -82,7 +82,7 @@
             .responsive-grid { padding: 20px 10px; gap: 15px; }
         }
         @media (max-width: 480px) {
-            .responsive-grid { display: flex; flex-direction: column-reverse; padding: 10px 8px; gap: 8px; grid-template-columns: 1fr; }
+            .responsive-grid { display: flex; flex-direction: column; padding: 10px 8px; gap: 8px; grid-template-columns: 1fr; }
         }
 
         main { order: -1; }
@@ -100,12 +100,17 @@
             main { width: 100%; }
         }
 
-        .header-responsive { display: flex; justify-content: space-between; margin-bottom: 40px; align-items: center; flex-wrap: wrap; }
+        .header-responsive { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
         @media (max-width: 768px) {
-            .header-responsive { flex-direction: column; align-items: flex-start; gap: 15px; width: 100%; }
+            .header-responsive { flex-direction: column; align-items: flex-start; gap: 12px; }
         }
         @media (max-width: 480px) {
-            .header-responsive { flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 15px; }
+            .header-responsive { align-items: center; width: 100%; flex-direction: row; }
+        }
+
+        .view-buttons-section { display: flex; justify-content: center; width: 100%; margin-bottom: 20px; }
+        @media (max-width: 480px) {
+            .view-buttons-section { margin-bottom: 12px; }
         }
 
         .header-info { display: flex; flex-direction: column; gap: 8px; }
@@ -118,12 +123,12 @@
             .header-date-energy { justify-content: space-between; width: 100%; gap: 8px; }
         }
 
-        .view-buttons { display: flex; gap: 8px; background: #13141a; padding: 4px; border-radius: 10px; border: 1px solid #1e1f24; }
+        .view-buttons { display: flex; gap: 8px; background: #13141a; padding: 4px; border-radius: 10px; border: 1px solid #1e1f24; width: fit-content; }
         @media (max-width: 768px) {
-            .view-buttons { width: 100%; }
+            .view-buttons { width: fit-content; }
         }
         @media (max-width: 480px) {
-            .view-buttons { width: 100%; gap: 2px; justify-content: space-between; }
+            .view-buttons { width: 100%; gap: 2px; justify-content: space-evenly; }
             .view-buttons button { flex: 1; padding: 8px 6px; font-size: 11px; white-space: nowrap; }
         }
 
@@ -275,6 +280,9 @@
                                 </div>
                             </div>
                         </div>
+                    </header>
+
+                    <div className="view-buttons-section">
                         <div className="view-buttons">
                             {["Daily", "Weekly", "Monthly"].map(v => (
                                 <button key={v} onClick={() => setView(v)} style={{ 
@@ -284,9 +292,42 @@
                                 }}>{v}</button>
                             ))}
                         </div>
-                    </header>
+                    </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: "30px" }} className="responsive-grid">
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "30px" }} className="responsive-grid">
+                        <main>
+                            <div className="glass-card fade-in focus-section" style={{ minHeight: "500px" }}>
+                                <h3 style={{ fontSize: "11px", color: "#444", letterSpacing: "2px", marginBottom: "25px" }}>FOCUS {view.toUpperCase()}</h3>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }} className="task-grid">
+                                    {tasks.filter(t => t.freq === view).map(t => (
+                                        <div key={t.id} className="task-card" style={{ opacity: t.done ? 0.3 : 1 }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                                <div onClick={() => toggleTask(t.id)} style={{ cursor: "pointer", flex: 1 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                                                        <span className={`priority-tag priority-${t.priority.toLowerCase()}`}>{t.priority}</span>
+                                                        <span style={{ fontSize: "11px", color: "#4f8ef7", textTransform: 'uppercase', fontWeight: 'bold' }}>{t.project || "Personnel"}</span>
+                                                    </div>
+                                                    <div style={{ fontWeight: "600", fontSize: "15px", textDecoration: t.done ? "line-through" : "none" }}>{t.name}</div>
+                                                    
+                                                    {t.deadline && (
+                                                        <div className="deadline-badge">
+                                                            ⏳ Deadline: {new Date(t.deadline).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <button className="delete-btn" onClick={() => deleteTask(t.id)}>×</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {tasks.filter(t => t.freq === view).length === 0 && (
+                                    <div style={{ textAlign: 'center', marginTop: '100px', color: '#333' }}>
+                                        <p>Aucune tâche {view} planifiée.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+
                         <aside style={{ display: "grid" }}>
                             <div className="glass-card fade-in sidebar-card" style={{ marginBottom: "0" }}>
                                 <h3 style={{ fontSize: "11px", color: "#4f8ef7", letterSpacing: "2px", marginBottom: "20px" }}>NOUVELLE TÂCHE</h3>
@@ -346,39 +387,6 @@
                                 ))}
                             </div>
                         </aside>
-
-                        <main>
-                            <div className="glass-card fade-in focus-section" style={{ minHeight: "500px" }}>
-                                <h3 style={{ fontSize: "11px", color: "#444", letterSpacing: "2px", marginBottom: "25px" }}>FOCUS {view.toUpperCase()}</h3>
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }} className="task-grid">
-                                    {tasks.filter(t => t.freq === view).map(t => (
-                                        <div key={t.id} className="task-card" style={{ opacity: t.done ? 0.3 : 1 }}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                                                <div onClick={() => toggleTask(t.id)} style={{ cursor: "pointer", flex: 1 }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                                                        <span className={`priority-tag priority-${t.priority.toLowerCase()}`}>{t.priority}</span>
-                                                        <span style={{ fontSize: "11px", color: "#4f8ef7", textTransform: 'uppercase', fontWeight: 'bold' }}>{t.project || "Personnel"}</span>
-                                                    </div>
-                                                    <div style={{ fontWeight: "600", fontSize: "15px", textDecoration: t.done ? "line-through" : "none" }}>{t.name}</div>
-                                                    
-                                                    {t.deadline && (
-                                                        <div className="deadline-badge">
-                                                            ⏳ Deadline: {new Date(t.deadline).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <button className="delete-btn" onClick={() => deleteTask(t.id)}>×</button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                {tasks.filter(t => t.freq === view).length === 0 && (
-                                    <div style={{ textAlign: 'center', marginTop: '100px', color: '#333' }}>
-                                        <p>Aucune tâche {view} planifiée.</p>
-                                    </div>
-                                )}
-                            </div>
-                        </main>
                     </div>
                 </div>
             );
