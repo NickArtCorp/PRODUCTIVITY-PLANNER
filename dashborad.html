@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerveau Non-Standard | OS v2.3</title>
+    <link rel="icon" type="image/jpeg" href="photo_2026-01-01_14-48-51.jpg">
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0e0f11; color: #e8e6e0; font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+        
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .glass-card { background: #13141a; border: 1px solid #1e1f24; border-radius: 12px; padding: 20px; }
+        
+        input, select, button, textarea { 
+            background: #1a1b1e; color: #e8e6e0; border: 1px solid #333; 
+            padding: 10px 12px; border-radius: 6px; font-family: 'DM Sans';
+            font-size: 13px; width: 100%;
+        }
+        
+        textarea { resize: none; height: 80px; transition: border 0.3s; }
+        textarea:focus { border-color: #4f8ef7; outline: none; }
+        
+        label { font-size: 11px; color: #555; margin-bottom: 4px; display: block; font-weight: bold; text-transform: uppercase; }
+
+        .task-card { 
+            padding: 15px; border: 1px solid #1e1f24; border-radius: 8px; 
+            background: #0e0f11; position: relative; transition: border 0.3s;
+        }
+        
+        .priority-tag {
+            font-size: 9px; font-family: 'JetBrains Mono'; padding: 2px 6px;
+            border-radius: 4px; text-transform: uppercase; font-weight: bold;
+            margin-right: 8px;
+        }
+        .priority-high { background: rgba(247, 79, 142, 0.1); color: #f74f8e; border: 1px solid #f74f8e; }
+        .priority-medium { background: rgba(79, 142, 247, 0.1); color: #4f8ef7; border: 1px solid #4f8ef7; }
+        .priority-low { background: rgba(85, 85, 85, 0.1); color: #888; border: 1px solid #444; }
+
+        .energy-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        
+        .deadline-badge {
+            font-family: 'JetBrains Mono'; font-size: 10px; padding: 2px 6px;
+            border-radius: 4px; background: #231f14; color: #f7c44f;
+            display: inline-block; margin-top: 8px;
+        }
+        
+        .delete-btn { color: #444; border: none; background: none; cursor: pointer; font-size: 16px; width: auto; }
+        .delete-btn:hover { color: #f74f8e; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const DEFAULT_HABITS = [
+            { id: 'h1', name: "Read the bible", type: "Spiritual", icon: "✝", freq: "Daily" },
+            { id: 'h2', name: "Pray", type: "Spiritual", icon: "🙏", freq: "Daily" },
+            { id: 'h3', name: "Read revival book", type: "Spiritual", icon: "📖", freq: "Daily" },
+            { id: 'h4', name: "Coding (2h+)", type: "Work", icon: "⌨", freq: "Daily" },
+            { id: 'h5', name: "Learn something new", type: "Learning", icon: "🧠", freq: "Daily" },
+            { id: 'h6', name: "Workout", type: "Health", icon: "💪", freq: "Daily" },
+            { id: 'h7', name: "Stay disciplined", type: "Discipline", icon: "🎯", freq: "Daily" },
+            { id: 'h8', name: "Read business book", type: "Business", icon: "📚", freq: "Daily" }
+        ];
+
+        function Dashboard() {
+            const [habits, setHabits] = useState(() => JSON.parse(localStorage.getItem('habits_v2.3')) || DEFAULT_HABITS.map(h => ({ ...h, done: false })));
+            const [tasks, setTasks] = useState(() => JSON.parse(localStorage.getItem('user_tasks_v2.3')) || []);
+            const [gratitude, setGratitude] = useState(() => localStorage.getItem('gratitude_v2.3') || "");
+            const [energy, setEnergy] = useState(() => localStorage.getItem('energy_v2.3') || "High");
+            const [view, setView] = useState("Daily");
+            
+            const [newTask, setNewTask] = useState({ name: '', project: '', priority: 'Medium', freq: 'Daily', deadline: '' });
+
+            useEffect(() => {
+                localStorage.setItem('habits_v2.3', JSON.stringify(habits));
+                localStorage.setItem('user_tasks_v2.3', JSON.stringify(tasks));
+                localStorage.setItem('gratitude_v2.3', gratitude);
+                localStorage.setItem('energy_v2.3', energy);
+            }, [habits, tasks, gratitude, energy]);
+
+            useEffect(() => {
+                const lastReset = localStorage.getItem('lastResetDate');
+                const today = new Date().toDateString();
+                if (lastReset !== today) {
+                    setHabits(prev => prev.map(h => h.freq === "Daily" ? { ...h, done: false } : h));
+                    setGratitude(""); // Reset gratitude daily
+                    localStorage.setItem('lastResetDate', today);
+                }
+            }, []);
+
+            const addTask = (e) => {
+                e.preventDefault();
+                if (!newTask.name) return;
+                const task = { ...newTask, id: Date.now(), done: false };
+                setTasks([...tasks, task]);
+                setNewTask({ name: '', project: '', priority: 'Medium', freq: view, deadline: '' });
+            };
+
+            const toggleTask = (id) => setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+            const deleteTask = (id) => setTasks(prev => prev.filter(t => t.id !== id));
+
+            const getEnergyColor = (lvl) => {
+                if(lvl === "High") return "#4ff7a0";
+                if(lvl === "Medium") return "#f7c44f";
+                return "#f74f8e";
+            }
+
+            return (
+                <div style={{ padding: "40px 20px", maxWidth: "1200px", margin: "0 auto" }}>
+                    <header style={{ display: "flex", justifyContent: "space-between", marginBottom: "40px", alignItems: "center" }}>
+                        <div>
+                            <h1 style={{ fontFamily: "'Syne'", fontSize: "32px", fontWeight: "800" }}>NICK OS <span style={{color: '#4f8ef7'}}>v2.3</span></h1>
+                            <div style={{ display: "flex", alignItems: "center", gap: "15px", marginTop: "5px" }}>
+                                <p style={{ color: "#555", fontSize: "11px", fontFamily: "'JetBrains Mono'", letterSpacing: '1px' }}>
+                                    {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()}
+                                </p>
+                                <div style={{ display: "flex", alignItems: "center", background: "#1a1b1e", padding: "4px 10px", borderRadius: "20px", border: "1px solid #333" }}>
+                                    <span className="energy-dot" style={{ background: getEnergyColor(energy) }}></span>
+                                    <select 
+                                        value={energy} 
+                                        onChange={(e) => setEnergy(e.target.value)}
+                                        style={{ background: "none", border: "none", fontSize: "10px", fontWeight: "bold", width: "auto", padding: "0", color: "#888" }}
+                                    >
+                                        <option value="High">HIGH ENERGY</option>
+                                        <option value="Medium">NEUTRAL</option>
+                                        <option value="Low">LOW ENERGY</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ display: "flex", gap: "8px", background: "#13141a", padding: "4px", borderRadius: "10px", border: "1px solid #1e1f24" }}>
+                            {["Daily", "Weekly", "Monthly"].map(v => (
+                                <button key={v} onClick={() => setView(v)} style={{ 
+                                    background: view === v ? "#4f8ef7" : "transparent", 
+                                    border: "none", borderRadius: "7px", color: view === v ? "white" : "#666",
+                                    padding: "8px 20px", fontWeight: "600", transition: "0.2s", width: "auto"
+                                }}>{v}</button>
+                            ))}
+                        </div>
+                    </header>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: "30px" }}>
+                        <aside>
+                            <div className="glass-card fade-in" style={{ marginBottom: "25px" }}>
+                                <h3 style={{ fontSize: "11px", color: "#4f8ef7", letterSpacing: "2px", marginBottom: "20px" }}>NOUVELLE TÂCHE</h3>
+                                <form onSubmit={addTask} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                                    <div>
+                                        <label>NOM DE LA TÂCHE</label>
+                                        <input placeholder="Ex: Finir chapitre 3..." value={newTask.name} onChange={e => setNewTask({...newTask, name: e.target.value})} />
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                        <div>
+                                            <label>PROJET</label>
+                                            <input placeholder="Ex: ArtConnect" value={newTask.project} onChange={e => setNewTask({...newTask, project: e.target.value})} />
+                                        </div>
+                                        <div>
+                                            <label>PRIORITÉ</label>
+                                            <select value={newTask.priority} onChange={e => setNewTask({...newTask, priority: e.target.value})}>
+                                                <option value="High">High</option>
+                                                <option value="Medium">Medium</option>
+                                                <option value="Low">Low</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                        <div>
+                                            <label>FRÉQUENCE</label>
+                                            <select value={newTask.freq} onChange={e => setNewTask({...newTask, freq: e.target.value})}>
+                                                <option value="Daily">Quotidien</option>
+                                                <option value="Weekly">Hebdo</option>
+                                                <option value="Monthly">Mensuel</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label>DEADLINE</label>
+                                            <input type="date" value={newTask.deadline} onChange={e => setNewTask({...newTask, deadline: e.target.value})} />
+                                        </div>
+                                    </div>
+                                    <button type="submit" style={{ background: "#4f8ef7", border: "none", fontWeight: "bold", marginTop: "10px", color: "white" }}>AJOUTER AU SYSTÈME</button>
+                                </form>
+                            </div>
+
+                            <div className="glass-card fade-in" style={{ marginBottom: "25px" }}>
+                                <h3 style={{ fontSize: "11px", color: "#4f8ef7", letterSpacing: "2px", marginBottom: "15px" }}>GRATITUDE DU JOUR</h3>
+                                <textarea 
+                                    placeholder="Aujourd'hui, je suis reconnaissant pour..." 
+                                    value={gratitude}
+                                    onChange={(e) => setGratitude(e.target.value)}
+                                ></textarea>
+                            </div>
+
+                            <div className="glass-card fade-in">
+                                <h3 style={{ fontSize: "11px", color: "#4f8ef7", letterSpacing: "2px", marginBottom: "20px" }}>ROUTINE MATINALE</h3>
+                                {habits.map(h => (
+                                    <div key={h.id} onClick={() => setHabits(prev => prev.map(item => item.id === h.id ? {...item, done: !item.done} : item))} style={{ display: "flex", alignItems: "center", marginBottom: "14px", cursor: "pointer", opacity: h.done ? 0.2 : 1 }}>
+                                        <div style={{ width: "20px", height: "20px", border: "2px solid #333", borderRadius: "5px", marginRight: "12px", background: h.done ? "#4ff7a0" : "transparent", transition: "0.2s" }}></div>
+                                        <span style={{ fontSize: "14px" }}>{h.icon} {h.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </aside>
+
+                        <main>
+                            <div className="glass-card fade-in" style={{ minHeight: "500px" }}>
+                                <h3 style={{ fontSize: "11px", color: "#444", letterSpacing: "2px", marginBottom: "25px" }}>FOCUS {view.toUpperCase()}</h3>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+                                    {tasks.filter(t => t.freq === view).map(t => (
+                                        <div key={t.id} className="task-card" style={{ opacity: t.done ? 0.3 : 1 }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                                <div onClick={() => toggleTask(t.id)} style={{ cursor: "pointer", flex: 1 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                                                        <span className={`priority-tag priority-${t.priority.toLowerCase()}`}>{t.priority}</span>
+                                                        <span style={{ fontSize: "11px", color: "#4f8ef7", textTransform: 'uppercase', fontWeight: 'bold' }}>{t.project || "Personnel"}</span>
+                                                    </div>
+                                                    <div style={{ fontWeight: "600", fontSize: "15px", textDecoration: t.done ? "line-through" : "none" }}>{t.name}</div>
+                                                    
+                                                    {t.deadline && (
+                                                        <div className="deadline-badge">
+                                                            ⏳ Deadline: {new Date(t.deadline).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <button className="delete-btn" onClick={() => deleteTask(t.id)}>×</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {tasks.filter(t => t.freq === view).length === 0 && (
+                                    <div style={{ textAlign: 'center', marginTop: '100px', color: '#333' }}>
+                                        <p>Aucune tâche {view} planifiée.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Dashboard />);
+    </script>
+</body>
+</html>
