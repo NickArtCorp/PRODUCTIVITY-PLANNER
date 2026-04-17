@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Cerveau Non-Standard | OS v2.3</title>
     <link rel="icon" type="image/jpeg" href="photo_2026-01-01_14-48-51.jpg">
     
@@ -14,6 +14,10 @@
         
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0e0f11; color: #e8e6e0; font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+        
+        @media (max-width: 768px) {
+            body { padding: 0; }
+        }
         
         .fade-in { animation: fadeIn 0.4s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -55,6 +59,102 @@
         
         .delete-btn { color: #444; border: none; background: none; cursor: pointer; font-size: 16px; width: auto; }
         .delete-btn:hover { color: #f74f8e; }
+
+        @media (max-width: 768px) {
+            .glass-card { padding: 16px; }
+            input, select, button, textarea { font-size: 12px; padding: 8px 10px; }
+            label { font-size: 10px; }
+            .task-card { padding: 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .glass-card { padding: 12px; }
+            input, select, button, textarea { font-size: 11px; padding: 6px 8px; }
+            label { font-size: 9px; }
+            .task-card { padding: 10px; }
+        }
+
+        .responsive-grid { display: grid; grid-template-columns: 340px 1fr; gap: 30px; }
+        @media (max-width: 1024px) {
+            .responsive-grid { grid-template-columns: 1fr; gap: 20px; }
+        }
+        @media (max-width: 768px) {
+            .responsive-grid { padding: 20px 10px; gap: 15px; }
+        }
+        @media (max-width: 480px) {
+            .responsive-grid { padding: 0; gap: 12px; grid-template-columns: 1fr; }
+        }
+
+        aside { min-width: 0; }
+        @media (max-width: 480px) {
+            aside { width: 100%; }
+        }
+
+        main { min-width: 0; }
+        @media (max-width: 480px) {
+            main { width: 100%; }
+        }
+
+        .header-responsive { display: flex; justify-content: space-between; margin-bottom: 40px; align-items: center; flex-wrap: wrap; }
+        @media (max-width: 768px) {
+            .header-responsive { flex-direction: column; align-items: flex-start; gap: 15px; width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .header-responsive { flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 20px; }
+        }
+
+        .header-info { display: flex; flex-direction: column; gap: 8px; }
+        @media (max-width: 480px) {
+            .header-info { width: 100%; }
+        }
+
+        .header-date-energy { display: flex; align-items: center; gap: 15px; margin-top: 5px; flex-wrap: wrap; }
+        @media (max-width: 480px) {
+            .header-date-energy { justify-content: space-between; width: 100%; gap: 8px; }
+        }
+
+        .view-buttons { display: flex; gap: 8px; background: #13141a; padding: 4px; border-radius: 10px; border: 1px solid #1e1f24; }
+        @media (max-width: 768px) {
+            .view-buttons { width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .view-buttons { width: 100%; gap: 2px; justify-content: space-between; }
+            .view-buttons button { flex: 1; padding: 8px 6px; font-size: 11px; white-space: nowrap; }
+        }
+
+        .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 768px) {
+            .task-grid { grid-template-columns: 1fr; gap: 12px; }
+        }
+        @media (max-width: 480px) {
+            .task-grid { grid-template-columns: 1fr; gap: 10px; }
+        }
+
+        .focus-section { min-height: 500px; overflow-y: auto; }
+        @media (max-width: 480px) {
+            .focus-section { min-height: auto; }
+        }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 480px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        .main-container { padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
+        @media (max-width: 768px) {
+            .main-container { padding: 30px 15px; }
+        }
+        @media (max-width: 480px) {
+            .main-container { padding: 20px 10px; }
+        }
+
+        h1 { font-family: 'Syne'; font-size: 32px; font-weight: 800; }
+        @media (max-width: 768px) {
+            h1 { font-size: 24px; }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
@@ -91,12 +191,31 @@
             }, [habits, tasks, gratitude, energy]);
 
             useEffect(() => {
-                const lastReset = localStorage.getItem('lastResetDate');
+                const lastResetDate = localStorage.getItem('lastResetDate');
+                const lastWeeklyReset = localStorage.getItem('lastWeeklyReset');
+                const lastMonthlyReset = localStorage.getItem('lastMonthlyReset');
                 const today = new Date().toDateString();
-                if (lastReset !== today) {
+                const currentWeek = Math.floor(new Date().getTime() / (7 * 24 * 60 * 60 * 1000));
+                const currentMonth = new Date().toISOString().slice(0, 7);
+
+                // Daily reset
+                if (lastResetDate !== today) {
                     setHabits(prev => prev.map(h => h.freq === "Daily" ? { ...h, done: false } : h));
-                    setGratitude(""); // Reset gratitude daily
+                    setTasks(prev => prev.map(t => t.freq === "Daily" ? { ...t, done: false } : t));
+                    setGratitude("");
                     localStorage.setItem('lastResetDate', today);
+                }
+
+                // Weekly reset
+                if (lastWeeklyReset !== currentWeek.toString()) {
+                    setTasks(prev => prev.map(t => t.freq === "Weekly" ? { ...t, done: false } : t));
+                    localStorage.setItem('lastWeeklyReset', currentWeek.toString());
+                }
+
+                // Monthly reset
+                if (lastMonthlyReset !== currentMonth) {
+                    setTasks(prev => prev.map(t => t.freq === "Monthly" ? { ...t, done: false } : t));
+                    localStorage.setItem('lastMonthlyReset', currentMonth);
                 }
             }, []);
 
@@ -118,11 +237,11 @@
             }
 
             return (
-                <div style={{ padding: "40px 20px", maxWidth: "1200px", margin: "0 auto" }}>
-                    <header style={{ display: "flex", justifyContent: "space-between", marginBottom: "40px", alignItems: "center" }}>
-                        <div>
+                <div style={{ padding: "40px 20px", maxWidth: "1200px", margin: "0 auto" }} className="main-container">
+                    <header className="header-responsive">
+                        <div className="header-info">
                             <h1 style={{ fontFamily: "'Syne'", fontSize: "32px", fontWeight: "800" }}>NICK OS <span style={{color: '#4f8ef7'}}>v2.3</span></h1>
-                            <div style={{ display: "flex", alignItems: "center", gap: "15px", marginTop: "5px" }}>
+                            <div className="header-date-energy">
                                 <p style={{ color: "#555", fontSize: "11px", fontFamily: "'JetBrains Mono'", letterSpacing: '1px' }}>
                                     {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()}
                                 </p>
@@ -140,18 +259,18 @@
                                 </div>
                             </div>
                         </div>
-                        <div style={{ display: "flex", gap: "8px", background: "#13141a", padding: "4px", borderRadius: "10px", border: "1px solid #1e1f24" }}>
+                        <div className="view-buttons">
                             {["Daily", "Weekly", "Monthly"].map(v => (
                                 <button key={v} onClick={() => setView(v)} style={{ 
                                     background: view === v ? "#4f8ef7" : "transparent", 
                                     border: "none", borderRadius: "7px", color: view === v ? "white" : "#666",
-                                    padding: "8px 20px", fontWeight: "600", transition: "0.2s", width: "auto"
+                                    padding: "8px 20px", fontWeight: "600", transition: "0.2s", width: "auto", fontSize: "13px"
                                 }}>{v}</button>
                             ))}
                         </div>
                     </header>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: "30px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: "30px" }} className="responsive-grid">
                         <aside>
                             <div className="glass-card fade-in" style={{ marginBottom: "25px" }}>
                                 <h3 style={{ fontSize: "11px", color: "#4f8ef7", letterSpacing: "2px", marginBottom: "20px" }}>NOUVELLE TÂCHE</h3>
@@ -160,7 +279,7 @@
                                         <label>NOM DE LA TÂCHE</label>
                                         <input placeholder="Ex: Finir chapitre 3..." value={newTask.name} onChange={e => setNewTask({...newTask, name: e.target.value})} />
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }} className="form-grid">
                                         <div>
                                             <label>PROJET</label>
                                             <input placeholder="Ex: ArtConnect" value={newTask.project} onChange={e => setNewTask({...newTask, project: e.target.value})} />
@@ -174,7 +293,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }} className="form-grid">
                                         <div>
                                             <label>FRÉQUENCE</label>
                                             <select value={newTask.freq} onChange={e => setNewTask({...newTask, freq: e.target.value})}>
@@ -213,9 +332,9 @@
                         </aside>
 
                         <main>
-                            <div className="glass-card fade-in" style={{ minHeight: "500px" }}>
+                            <div className="glass-card fade-in focus-section" style={{ minHeight: "500px" }}>
                                 <h3 style={{ fontSize: "11px", color: "#444", letterSpacing: "2px", marginBottom: "25px" }}>FOCUS {view.toUpperCase()}</h3>
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }} className="task-grid">
                                     {tasks.filter(t => t.freq === view).map(t => (
                                         <div key={t.id} className="task-card" style={{ opacity: t.done ? 0.3 : 1 }}>
                                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
