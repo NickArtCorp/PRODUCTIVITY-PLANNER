@@ -82,7 +82,12 @@
             .responsive-grid { padding: 20px 10px; gap: 15px; }
         }
         @media (max-width: 480px) {
-            .responsive-grid { padding: 0; gap: 12px; grid-template-columns: 1fr; }
+            .responsive-grid { display: flex; flex-direction: column-reverse; padding: 10px 8px; gap: 8px; grid-template-columns: 1fr; }
+        }
+
+        main { order: -1; }
+        @media (max-width: 480px) {
+            main { order: -2; }
         }
 
         aside { min-width: 0; }
@@ -100,7 +105,7 @@
             .header-responsive { flex-direction: column; align-items: flex-start; gap: 15px; width: 100%; }
         }
         @media (max-width: 480px) {
-            .header-responsive { flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 20px; }
+            .header-responsive { flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 15px; }
         }
 
         .header-info { display: flex; flex-direction: column; gap: 8px; }
@@ -132,7 +137,18 @@
 
         .focus-section { min-height: 500px; overflow-y: auto; }
         @media (max-width: 480px) {
-            .focus-section { min-height: auto; }
+            .focus-section { min-height: auto; padding: 12px; }
+        }
+
+        aside { display: grid; grid-auto-flow: row; gap: 15px; }
+        @media (max-width: 480px) {
+            aside { gap: 10px; }
+        }
+
+        .sidebar-card { margin-bottom: 0; }
+        @media (max-width: 480px) {
+            .sidebar-card { margin-bottom: 0; }
+            .glass-card { padding: 12px; }
         }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -145,7 +161,7 @@
             .main-container { padding: 30px 15px; }
         }
         @media (max-width: 480px) {
-            .main-container { padding: 20px 10px; }
+            .main-container { padding: 15px 8px; }
         }
 
         h1 { font-family: 'Syne'; font-size: 32px; font-weight: 800; }
@@ -271,8 +287,8 @@
                     </header>
 
                     <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: "30px" }} className="responsive-grid">
-                        <aside>
-                            <div className="glass-card fade-in" style={{ marginBottom: "25px" }}>
+                        <aside style={{ display: "grid" }}>
+                            <div className="glass-card fade-in sidebar-card" style={{ marginBottom: "0" }}>
                                 <h3 style={{ fontSize: "11px", color: "#4f8ef7", letterSpacing: "2px", marginBottom: "20px" }}>NOUVELLE TÂCHE</h3>
                                 <form onSubmit={addTask} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                                     <div>
@@ -311,7 +327,7 @@
                                 </form>
                             </div>
 
-                            <div className="glass-card fade-in" style={{ marginBottom: "25px" }}>
+                            <div className="glass-card fade-in sidebar-card" style={{ marginBottom: "0" }}>
                                 <h3 style={{ fontSize: "11px", color: "#4f8ef7", letterSpacing: "2px", marginBottom: "15px" }}>GRATITUDE DU JOUR</h3>
                                 <textarea 
                                     placeholder="Aujourd'hui, je suis reconnaissant pour..." 
@@ -320,7 +336,7 @@
                                 ></textarea>
                             </div>
 
-                            <div className="glass-card fade-in">
+                            <div className="glass-card fade-in sidebar-card" style={{ marginBottom: "0" }}>
                                 <h3 style={{ fontSize: "11px", color: "#4f8ef7", letterSpacing: "2px", marginBottom: "20px" }}>ROUTINE MATINALE</h3>
                                 {habits.map(h => (
                                     <div key={h.id} onClick={() => setHabits(prev => prev.map(item => item.id === h.id ? {...item, done: !item.done} : item))} style={{ display: "flex", alignItems: "center", marginBottom: "14px", cursor: "pointer", opacity: h.done ? 0.2 : 1 }}>
