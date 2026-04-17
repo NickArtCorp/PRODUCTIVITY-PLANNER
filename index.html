@@ -79,25 +79,18 @@
             .responsive-grid { grid-template-columns: 1fr; gap: 20px; }
         }
         @media (max-width: 768px) {
-            .responsive-grid { padding: 20px 10px; gap: 15px; }
+            .responsive-grid { grid-template-columns: 1fr; padding: 20px 10px; gap: 15px; }
         }
         @media (max-width: 480px) {
-            .responsive-grid { display: flex; flex-direction: column; padding: 10px 8px; gap: 8px; grid-template-columns: 1fr; }
-        }
-
-        main { order: -1; }
-        @media (max-width: 480px) {
-            main { order: -2; }
-        }
-
-        aside { min-width: 0; }
-        @media (max-width: 480px) {
-            aside { width: 100%; }
+            .responsive-grid { grid-template-columns: 1fr; padding: 10px 8px; gap: 8px; }
         }
 
         main { min-width: 0; }
+        aside { min-width: 0; }
+        
         @media (max-width: 480px) {
             main { width: 100%; }
+            aside { width: 100%; }
         }
 
         .header-responsive { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
@@ -294,7 +287,7 @@
                         </div>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "30px" }} className="responsive-grid">
+                    <div className="responsive-grid">
                         <main>
                             <div className="glass-card fade-in focus-section" style={{ minHeight: "500px" }}>
                                 <h3 style={{ fontSize: "11px", color: "#444", letterSpacing: "2px", marginBottom: "25px" }}>FOCUS {view.toUpperCase()}</h3>
